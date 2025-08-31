@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>لینک سریع – کارت تماس</title>
+  <meta name="description" content="با نزدیک کردن گوشی، سریع به لینک‌ها و اطلاعات تماس من وصل شوید." />
+  <meta property="og:title" content="کارت تماس سریع" />
+  <meta property="og:description" content="با یک لمس، تماس، واتساپ، اینستاگرام و ذخیره مخاطب" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="" />
+  <meta name="theme-color" content="#111827" />
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .glass{backdrop-filter:blur(14px);background:rgba(17,24,39,.6)}
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black text-white">
+  <!--================ SETTINGS (ویرایش کنید) ================-->
+  <script>
+    // اطلاعات خودتان را اینجا پر کنید
+    const PROFILE = {
+      name: "نام شما",
+      role: "عنوان/شغل شما",
+      phone: "+98xxxxxxxxxx",   // با کد کشور
+      whatsapp: "+98xxxxxxxxxx", // اختیاری؛ اگر خالی بماند از phone استفاده می‌شود
+      email: "you@example.com",
+      website: "https://example.com",
+      instagram: "your_instagram", // فقط آیدی
+      address: "تهران، ایران",
+      company: "نام برند/شرکت (اختیاری)",
+      avatar: "https://avatars.githubusercontent.com/u/9919?s=200&v=4" // لینک عکس پروفایل
+    };
+
+    // --- تولید vCard ---
+    function makeVCard(p){
+      const esc = s => (s||"").replace(/\\n/g,"\\n").replace(/,/g,"\\,");
+      const lines = [
+        "BEGIN:VCARD",
+        "VERSION:3.0",
+        `FN:${esc(p.name)}`,
+        p.company?`ORG:${esc(p.company)}`:null,
+        p.role?`TITLE:${esc(p.role)}`:null,
+        p.phone?`TEL;TYPE=CELL:${p.phone}`:null,
+        p.email?`EMAIL;TYPE=INTERNET:${p.email}`:null,
+        p.website?`URL:${p.website}`:null,
+        p.address?`ADR;TYPE=WORK:;;${esc(p.address)};;;;`:null,
+        "END:VCARD"
+      ].filter(Boolean).join("\n");
+      return "data:text/vcard;charset=utf-8," + encodeURIComponent(lines);
+    }
+
+    // لینک‌ها
+    function links(p){
+      const tel = p.phone ? `tel:${p.phone}` : "#";
+      const waNumber = (p.whatsapp||p.phone||"").replace(/[^0-9+]/g,"");
+      const wa = waNumber?`https://wa.me/${waNumber.replace(/^\+/,"")}`:"#";
+      const ig = p.instagram?`https://instagram.com/${p.instagram}`:"#";
+      const email = p.email?`mailto:${p.email}`:"#";
+      const site = p.website||"#";
+      const vcf = makeVCard(p);
+      return {tel, wa, ig, email, site, vcf};
+    }
+
+    // در DOM استفاده می‌شود
+    window.PROFILE = PROFILE;
+    window.LINKS = links(PROFILE);
+  </script>
+  <!--========================================================-->
+
+  <main class="mx-auto max-w-md px-5 py-10">
+    <section class="flex flex-col items-center text-center gap-6">
+      <div class="relative">
+        <img id="avatar" class="h-28 w-28 rounded-full ring-4 ring-white/10 shadow-2xl object-cover" alt="avatar" />
+        <span class="absolute -bottom-2 -right-2 text-xs bg-emerald-500 text-white px-2 py-1 rounded-full shadow">NFC Ready</span>
+      </div>
+      <div>
+        <h1 id="name" class="text-2xl font-bold"></h1>
+        <p id="role" class="text-gray-300 mt-1"></p>
+      </div>
+
+      <div class="w-full glass rounded-2xl p-4 shadow-xl border border-white/10">
+        <div class="grid grid-cols-1 gap-3">
+          <a id="btn-call" class="w-full inline-flex items-center justify-between rounded-xl px-4 py-3 bg-white/5 hover:bg-white/10 transition border border-white/10" href="#">
+            <span>📞 تماس مستقیم</span>
+            <span class="text-xs text-gray-300" id="phoneLabel"></span>
+          </a>
+          <a id="btn-wa" class="w-full inline-flex items-center justify-between rounded-xl px-4 py-3 bg-white/5 hover:bg-white/10 transition border border-white/10" href="#" target="_blank" rel="noopener">
+            <span>💬 واتساپ</span>
+            <span class="text-xs text-gray-300">Chat</span>
+          </a>
+          <a id="btn-ig" class="w-full inline-flex items-center justify-between rounded-xl px-4 py-3 bg-white/5 hover:bg-white/10 transition border border-white/10" href="#" target="_blank" rel="noopener">
+            <span>📸 اینستاگرام</span>
+            <span class="text-xs text-gray-300" id="igLabel"></span>
+          </a>
+          <a id="btn-site" class="w-full inline-flex items-center justify-between rounded-xl px-4 py-3 bg-white/5 hover:bg-white/10 transition border border-white/10" href="#" target="_blank" rel="noopener">
+            <span>🌐 وبسایت</span>
+            <span class="text-xs text-gray-300">Open</span>
+          </a>
+          <a id="btn-email" class="w-full inline-flex items-center justify-between rounded-xl px-4 py-3 bg-white/5 hover:bg-white/10 transition border border-white/10" href="#">
+            <span>✉️ ایمیل</span>
+            <span class="text-xs text-gray-300">Send</span>
+          </a>
+          <a id="btn-vcf" download="contact.vcf" class="w-full inline-flex items-center justify-between rounded-xl px-4 py-3 bg-emerald-600/90 hover:bg-emerald-600 transition border border-emerald-500/50" href="#">
+            <span>📇 ذخیره مخاطب (vCard)</span>
+            <span class="text-xs text-white/90">Add to Contacts</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="text-xs text-gray-400 mt-6 leading-6">
+        <p>راهنما: این صفحه را روی هاست/دامنه خودتان آپلود کنید. سپس لینک همین صفحه را روی تگ NFC بنویسید.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="text-center text-xs text-gray-500 py-8">
+    <p>Made for NFC smart tap • قابل ویرایش</p>
+  </footer>
+
+  <script>
+    // مقداردهی عناصر
+    const $ = s => document.querySelector(s);
+    $("#avatar").src = PROFILE.avatar || "";
+    $("#name").textContent = PROFILE.name || "";
+    $("#role").textContent = PROFILE.role || "";
+
+    $("#btn-call").href = LINKS.tel;
+    $("#phoneLabel").textContent = PROFILE.phone || "";
+
+    $("#btn-wa").href = LINKS.wa;
+    $("#btn-ig").href = LINKS.ig;
+    $("#igLabel").textContent = PROFILE.instagram?('@'+PROFILE.instagram):'';
+    $("#btn-site").href = LINKS.site;
+    $("#btn-email").href = LINKS.email;
+
+    const vcf = LINKS.vcf;
+    const vcfBtn = $("#btn-vcf");
+    vcfBtn.href = vcf;
+    vcfBtn.download = (PROFILE.name?PROFILE.name.replace(/\s+/g,'_'):'contact') + ".vcf";
+  </script>
+</body>
+</html>
